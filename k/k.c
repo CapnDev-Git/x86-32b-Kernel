@@ -24,18 +24,53 @@
 #include <k/kstd.h>
 
 #include "multiboot.h"
+#include "serial.h"
+
+#define LINES 25
+#define COLUMNS 80
+
+int write(const char *buf, size_t count) {
+  return serial_write(COM1, buf, count);
+}
+
+void write_framebuffer(char *fb, const char *buf, size_t *line) {
+  size_t len = strlen(buf);
+
+  for (size_t i = 0; i < len; i++) {
+    fb[(i + (*line) * COLUMNS) * 2] = buf[i];
+    fb[(i + (*line) * COLUMNS) * 2 + 1] = 0x07;
+  }
+  (*line)++;
+}
+
+void init_framebuffer(char *fb, size_t *line) {
+  // Clear the framebuffer
+  for (size_t i = 0; i < COLUMNS * LINES; i++) {
+    fb[i * 2] = ' ';
+    fb[i * 2 + 1] = 0x07;
+  }
+
+  // Write the initialization message
+  write_framebuffer(fb, "Kernel Initialized!", line);
+}
 
 void k_main(unsigned long magic, multiboot_info_t *info) {
   (void)magic;
   (void)info;
 
-  char star[4] = "|/-\\";
-  char *fb = (void *)0xb8000;
+  size_t line = 0;
+  char *fb = (void *)0xb8000; // Framebuffer address
 
-  for (unsigned i = 0;;) {
-    *fb = star[i++ % 4];
-  }
+  // Initialize the kernel
+  init_framebuffer(fb, &line);
 
-  for (;;)
-    asm volatile("hlt");
+  // Initialize the serial port at COM1
+  serial_init(COM1);
+  write_framebuffer(fb, "Serial Port Initialized!", &line);
+
+  // Write a test message to the serial port
+  write("Hello Serial Port!\r\n", 21);
+
+  // Write a test message to the framebuffer
+  write_framebuffer(fb, "Hello Framebuffer!", &line);
 }
