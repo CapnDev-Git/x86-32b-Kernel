@@ -31,7 +31,6 @@ OBJS	= \
 	  list.o \
 	  memory.o \
 	  panic.o \
-	  serial.o \
 
 
 DEPS = $(OBJS:.o=.d)
