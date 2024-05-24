@@ -3,37 +3,108 @@
 #include "io.h"
 #include <k/types.h>
 
-static void enable_baud_rate_divisor(u16 port) {
-  // Enable DLAB (set baud rate divisor)
-  outb(port + 3, 0x80);
-  outb(port + 0, 0x03); // Set divisor to 3 (low byte) 38400 baud
-  outb(port + 1, 0x00); //                  (high byte)
-}
+// Serial port addresses
+#define COM1 0x3f8
+#define SERIAL_PORT COM1
 
-void serial_init(u16 port) {
+// UART registers offsets & masks
+#define DLAB 0x80
+#define DLL_VALUE 0x03
+#define DLM_VALUE 0x00
+#define _8N1 0x03
+#define IFIFO 0xC7
+#define IER_THREI 0x02
+
+// Line Status Register (LSR) offsets & masks
+#define LSR_OFFSET 5
+#define RDA_MASK 0x01
+#define THR_MASK 0x20
+
+/**
+ * \brief Initialize the serial port for communication on COM1.
+ *
+ * The serial port is configured with the following settings:
+ *  * No interrupts
+ *  * Baud rate: 38400
+ *  * Data length: 8 bits
+ *  * Parity: None
+ *  * Stop bits: 1
+ *  * FIFO enabled
+ *  * Both receiver and transmitter FIFO queues cleared
+ *  * THR empty interrupt enabled
+ *
+ * The serial port is configured to use COM1 (0x3f8).
+ */
+void serial_init(void) {
   // Disable all interrupts
-  outb(port + 1, 0x00); // (b5->b0 = 0, b6 & b7 reserved)
+  outb(SERIAL_PORT + 1, 0x00);
 
   // Enable DLAB (set baud rate divisor)
-  enable_baud_rate_divisor(port);
+  outb(SERIAL_PORT + 3, DLAB);
+  outb(SERIAL_PORT + 0, DLL_VALUE);
+  outb(SERIAL_PORT + 1, DLM_VALUE);
 
-  outb(port + 3, 0x03); // set 8bits length, no parity
-  outb(port + 2, 0xC7); // enable FIFO + clear [transmit|receive], int. 14B
-  outb(port + 1, 0x02); // enabling THR empty interrupt
+  // Set 8-bits length, no parity, one stop bit
+  outb(SERIAL_PORT + 3, _8N1);
+
+  // Enable FIFO, clear both receiver and transmitter FIFO queues
+  outb(SERIAL_PORT + 2, IFIFO);
+
+  // Enable THR empty interrupt
+  outb(SERIAL_PORT + 1, IER_THREI);
 }
 
-int serial_read(u16 port) { return inb(port + THR_OFFSET); }
+/**
+ * \brief Check if the serial port has received data.
+ * \return 1 if data is available, 0 otherwise.
+ */
+static int serial_received(void) {
+  return inb(SERIAL_PORT + LSR_OFFSET) & RDA_MASK;
+}
 
-int serial_received(u16 port) { return inb(port + LSR_OFFSET) & 0x20; }
+/**
+ * \brief Check if the serial port is ready to transmit data.
+ * \return 1 if the port is ready, 0 otherwise.
+ */
+static int is_transmit_empty(void) {
+  return inb(SERIAL_PORT + LSR_OFFSET) & THR_MASK;
+}
 
-int serial_write(u16 port, const char *buf, size_t count) {
+/**
+ * \brief Read a byte from the serial port.
+ * \return The byte read from the serial port.
+ */
+char serial_read(void) {
+  while (!serial_received())
+    ;
+  return inb(SERIAL_PORT);
+}
+
+/**
+ * \brief Write a buffer to the serial port.
+ * \param buf The buffer to write.
+ * \param count The number of bytes to write.
+ * \return The number of bytes written.
+ * \note This function blocks until all bytes are written.
+ */
+int serial_write(const char *buf, size_t count) {
   for (size_t i = 0; i < count; i++) {
     // Wait until the Transmitter Holding Register is empty
-    while (!serial_received(port))
+    while (!is_transmit_empty())
       ;
 
     // Write the byte to the Transmitter Holding Register
-    outb(port + THR_OFFSET, buf[i]);
+    outb(SERIAL_PORT, buf[i]);
   }
+}
+
+/**
+ * \brief Write a buffer to the serial port.
+ * \param buf The buffer to write.
+ * \param count The number of bytes to write.
+ * \return The number of bytes written.
+ */
+int write(const char *buf, size_t count) {
+  serial_write(buf, count);
   return count;
 }
