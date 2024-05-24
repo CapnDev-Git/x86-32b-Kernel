@@ -29,10 +29,6 @@
 #define LINES 25
 #define COLUMNS 80
 
-int write(const char *buf, size_t count) {
-  return serial_write(COM1, buf, count);
-}
-
 void write_framebuffer(char *fb, const char *buf, size_t *line) {
   size_t len = strlen(buf);
 
@@ -65,11 +61,11 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   init_framebuffer(fb, &line);
 
   // Initialize the serial port at COM1
-  serial_init(COM1);
+  serial_init();
   write_framebuffer(fb, "Serial Port Initialized!", &line);
 
   // Write a test message to the serial port
-  write("Hello Serial Port!\r\n", 21);
+  write("Hello Serial Port!\r\n", 19);
 
   // Write a test message to the framebuffer
   write_framebuffer(fb, "Hello Framebuffer!", &line);
