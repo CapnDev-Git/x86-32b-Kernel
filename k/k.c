@@ -22,33 +22,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <k/kstd.h>
+#include <string.h>
 
+#include "gdt.h"
+#include "graphics.h"
 #include "multiboot.h"
 #include "serial.h"
-
-#define LINES 25
-#define COLUMNS 80
-
-void write_framebuffer(char *fb, const char *buf, size_t *line) {
-  size_t len = strlen(buf);
-
-  for (size_t i = 0; i < len; i++) {
-    fb[(i + (*line) * COLUMNS) * 2] = buf[i];
-    fb[(i + (*line) * COLUMNS) * 2 + 1] = 0x07;
-  }
-  (*line)++;
-}
-
-void init_framebuffer(char *fb, size_t *line) {
-  // Clear the framebuffer
-  for (size_t i = 0; i < COLUMNS * LINES; i++) {
-    fb[i * 2] = ' ';
-    fb[i * 2 + 1] = 0x07;
-  }
-
-  // Write the initialization message
-  write_framebuffer(fb, "Kernel Initialized!", line);
-}
 
 void k_main(unsigned long magic, multiboot_info_t *info) {
   (void)magic;
@@ -65,8 +44,17 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   write_framebuffer(fb, "Serial Port Initialized!", &line);
 
   // Write a test message to the serial port
-  write("Hello Serial Port!\r\n", 19);
+  write("Hello Serial Port!\r\n", 20);
 
   // Write a test message to the framebuffer
   write_framebuffer(fb, "Hello Framebuffer!", &line);
+
+  // Setup GDT
+  init_gdt();
+  write_framebuffer(fb, "GDT Initialized!", &line);
+  write_framebuffer(fb, "Protected Mode Enabled!", &line);
+
+  // Halt the CPU
+  for (;;)
+    asm volatile("hlt");
 }
