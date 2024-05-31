@@ -52,7 +52,54 @@
 #define TSS_DESCRIPTOR_SELECTOR 5 // TSS descriptor index in GDT
 #define GDT_ENTRIES 6
 
-// TSS entry structure
+/**
+ * \brief Task State Segment (TSS) entry
+ * The TSS is a structure used by the CPU to store information about a task. It
+ * is used by the CPU when switching between tasks. The TSS is loaded with the
+ * LTR instruction and the CPU will automatically switch to the TSS when the
+ * task is switched to. The TSS is used to store the stack pointer, stack
+ * segment, and other information about the task.
+ *
+ * \param prev_tss The previous TSS - if we used hardware task switching this
+ * would form a linked list.
+ * \param reserved0 Reserved, must be zero
+ * \param esp0 The stack pointer to load when we change to kernel mode.
+ * \param ss0 The stack segment to load when we change to kernel mode.
+ * \param reserved1 Reserved, must be zero
+ * \param esp1 Unused...
+ * \param ss1
+ * \param reserved2
+ * \param esp2
+ * \param ss2
+ * \param reserved3
+ * \param cr3
+ * \param eip
+ * \param eflags
+ * \param eax
+ * \param ecx
+ * \param edx
+ * \param ebx
+ * \param esp
+ * \param ebp
+ * \param esi
+ * \param edi
+ * \param es The value to load into ES when we change to kernel mode.
+ * \param reserved4
+ * \param cs The value to load into CS when we change to kernel mode.
+ * \param reserved5
+ * \param ss The value to load into SS when we change to kernel mode.
+ * \param reserved6
+ * \param ds The value to load into DS when we change to kernel mode.
+ * \param reserved7
+ * \param fs The value to load into FS when we change to kernel mode.
+ * \param reserved8
+ * \param gs The value to load into GS when we change to kernel mode.
+ * \param reserved9
+ * \param ldt Unused...
+ * \param reserved10
+ * \param trap
+ * \param iomap_base
+ */
 struct tss_entry {
   u16 prev_tss;  // The previous TSS - if we used hardware task switching this
                  // would form a linked list.
@@ -95,7 +142,21 @@ struct tss_entry {
   u16 iomap_base;
 } __attribute__((packed));
 
-// GDT entry structure
+/**
+ * \brief Global Descriptor Table (GDT) entry
+ * The GDT is a structure used by the CPU to store segment descriptors. The GDT
+ * is loaded with the LGDT instruction and the CPU will automatically switch to
+ * the GDT when the segment is loaded. The GDT is used to store information
+ * about the segment such as the base address, limit, and access rights.
+ * The GDT is used to store information about the segment such as the base
+ * address, limit, and access rights.
+ * \param limit_low The lower 16 bits of the limit
+ * \param base_low The lower 16 bits of the base
+ * \param base_middle The next 8 bits of the base
+ * \param access Access flags, determine what ring this segment can be used in
+ * \param granularity Granularity flags, sets the unit size and limit scaling
+ * \param base_high The last 8 bits of the base
+ */
 struct gdt_entry {
   u16 limit_low;
   u16 base_low;
@@ -105,16 +166,31 @@ struct gdt_entry {
   u8 base_high;
 } __attribute__((packed));
 
-// GDT pointer structure
+/**
+ * \brief Global Descriptor Table Register (GDTR)
+ * The GDTR is a structure used by the CPU to store the location and size of the
+ * GDT. The GDTR is loaded with the LGDT instruction and the CPU will
+ * automatically switch to the GDT when the segment is loaded.
+ * \param limit The size of the GDT
+ * \param base The base address of the GDT
+ */
 struct gdtr {
   u16 limit;
   u32 base;
 } __attribute__((packed));
 
+// TSS entry, GDT entries and GDTR
+struct tss_entry tss;
 struct gdt_entry gdt[GDT_ENTRIES];
 struct gdtr gdtr;
-struct tss_entry tss;
 
+/**
+ * \brief Initialize a segment descriptor
+ * \param entry The GDT entry to initialize
+ * \param base The base address of the segment
+ * \param limit The limit of the segment
+ * \param flag The access flags for the segment
+ */
 static void init_seg_desc(struct gdt_entry *entry, u32 base, u32 limit,
                           u16 flag) {
   u64 descriptor;
@@ -136,6 +212,9 @@ static void init_seg_desc(struct gdt_entry *entry, u32 base, u32 limit,
   *(u64 *)entry = descriptor;
 }
 
+/**
+ * \brief Initialize the segment descriptors
+ */
 static void init_segment_descriptors(void) {
   init_seg_desc(&gdt[0], 0, 0, 0);                     // Null segment
   init_seg_desc(&gdt[1], 0, 0x000FFFFF, GDT_CODE_PL0); // Kernel code
@@ -144,6 +223,12 @@ static void init_segment_descriptors(void) {
   init_seg_desc(&gdt[4], 0, 0x000FFFFF, GDT_DATA_PL3); // User data
 }
 
+/**
+ * \brief Write the TSS to the GDT
+ * \param idx The index of the TSS descriptor in the GDT
+ * \param ss0 The kernel stack segment
+ * \param esp0 The kernel stack pointer
+ */
 static void write_tss(int idx, u16 ss0, u32 esp0) {
   // Configure the TSS
   memset(&tss, 0, sizeof(tss));
@@ -163,13 +248,23 @@ static void write_tss(int idx, u16 ss0, u32 esp0) {
   gdt[idx].access = TSS_DESCRIPTOR_ACCESS; // Set access bits
 }
 
+/**
+ * \brief Load the GDT
+ */
 static void load_gdt(void) { asm volatile("lgdt (%0)" : : "r"(&gdtr)); }
 
+/**
+ * \brief Load the TSS selector
+ * \param tss_selector The TSS selector
+ */
 static void load_tss_selector(u16 tss_selector) {
   asm volatile("mov %0, %%ax\n"
                "ltr %%ax\n" ::"m"(tss_selector));
 }
 
+/**
+ * \brief Reload the segment registers
+ */
 static void reload_segment_registers(void) {
   write("Reloading segment registers\r\n", 29);
   asm volatile("mov $0x10, %%ax\n"
@@ -187,6 +282,9 @@ static void reload_segment_registers(void) {
                : "memory");
 }
 
+/**
+ * \brief Enable protected mode
+ */
 static void enable_protected_mode(void) {
   asm volatile("mov %%cr0, %%eax\n"
                "or $0x1, %%eax\n"
@@ -196,6 +294,9 @@ static void enable_protected_mode(void) {
                : "%eax");
 }
 
+/**
+ * \brief Initialize the Global Descriptor Table (GDT)
+ */
 void init_gdt(void) {
   // Initialize the segment descriptors
   init_segment_descriptors();
