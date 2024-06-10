@@ -21,6 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <k/graphics_colors.h>
 #include <k/kstd.h>
 #include <string.h>
 
@@ -29,30 +30,29 @@
 #include "multiboot.h"
 #include "serial.h"
 
+#define VGA_ADDRESS 0xb8000
+
 void k_main(unsigned long magic, multiboot_info_t *info) {
   (void)magic;
   (void)info;
 
   size_t line = 0;
-  char *fb = (void *)0xb8000; // Framebuffer address
+  char *fb = (void *)VGA_ADDRESS; // Framebuffer address
 
-  // Initialize the kernel
-  init_framebuffer(fb, &line);
+  // Initialize the framebuffer
+  init_fb(fb, &line);
 
   // Initialize the serial port at COM1
   serial_init();
-  write_framebuffer(fb, "Serial Port Initialized!", &line);
+  write_fb(fb, "Serial port initialized", &line, LIGHT_GREEN);
 
   // Write a test message to the serial port
   write("Hello Serial Port!\r\n", 20);
 
-  // Write a test message to the framebuffer
-  write_framebuffer(fb, "Hello Framebuffer!", &line);
-
   // Setup GDT
   init_gdt();
-  write_framebuffer(fb, "GDT Initialized!", &line);
-  write_framebuffer(fb, "Protected Mode Enabled!", &line);
+  write_fb(fb, "GDT loaded", &line, YELLOW);
+  write_fb(fb, "Protected mode enabled", &line, LIGHT_CYAN);
 
   // Halt the CPU
   for (;;)
