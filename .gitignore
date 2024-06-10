@@ -3,6 +3,14 @@
 iso/
 k/k
 
+# Compiled ROM files
+hunter
+pong
+chichevaders
+perrodlauncher
+skate
+yakanoid
+
 # Prerequisites
 *.d
 
