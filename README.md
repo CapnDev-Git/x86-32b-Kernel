@@ -23,20 +23,37 @@ Here are the dependencies you'll need to build this project:
 
 Here's a quick look at the important files and directories:
 
-- `Makefile` - Top-level Makefile
-- `config.mk` - Build-system configuration
+- `Makefile` - Build system configuration and rules for building the project.
 - `k/` - Kernel source folder
-  - `elf.h` - ELF header
-  - `crt0.S` - CRT0 for the kernel
-  - `k.c` - Kernel entry point
-  - `multiboot.h` - Multiboot Specification header
-  - `k.lds` - LD script for the kernel binary
-  - `memory.c` - Kernel memory allocator
+  - `crt0.S` - Assembly code for the C runtime startup.
+  - `elf.h` - ELF header definitions.
+  - `gdt.c` - Global Descriptor Table implementation.
+  - `gdt.h` - Global Descriptor Table definitions.
+  - `graphics.c` - Graphics-related functions.
+  - `graphics.h` - Graphics function definitions.
+  - `io.h` - Input/Output port handling.
+  - `k.c` - Kernel entry point.
+  - `k.lds` - Linker script for the kernel binary.
+  - `libvga.c` - VGA library implementation.
+  - `libvga.h` - VGA library definitions.
+  - `list.c` - Linked list data structure implementation.
+  - `list.h` - Linked list data structure definitions.
+  - `memory.c` - Kernel memory management functions.
+  - `memory.h` - Memory management definitions.
+  - `multiboot.h` - Multiboot Specification header.
+  - `panic.c` - Kernel panic handling.
+  - `panic.h` - Panic handling definitions.
+  - `serial.c` - Serial port communication implementation.
+  - `serial.h` - Serial port communication definitions.
   - `include/k/` - Kernel includes
-    - `atapi.h` - ATAPI definitions
-    - `kstd.h` - K standard definitions
-    - `kfs.h` - KFS structures definitions
-    - `types.h` - Kernel types definitions
+    - `atapi.h` - ATAPI definitions.
+    - `blockdev.h` - Block device interface definitions.
+    - `compiler.h` - Compiler-specific definitions.
+    - `graphics_colors.h` - Console colors definitions.
+    - `iso9660.h` - ISO 9660 file system definitions.
+    - `kfs.h` - KFS file system definitions.
+    - `kstd.h` - Kernel standard definitions.
+    - `types.h` - Kernel type definitions.
 - `roms/` - ROMs folder
   - `chichepong/` - Chichepong folder
   - `roms.lds` - LD script for ROM binaries
