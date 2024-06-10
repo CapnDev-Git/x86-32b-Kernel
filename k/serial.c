@@ -70,9 +70,8 @@ int serial_write(const char *buf, size_t count) {
     // Write the byte to the Transmitter Holding Register
     outb(SERIAL_PORT, buf[i]);
   }
-}
 
-int write(const char *buf, size_t count) {
-  serial_write(buf, count);
   return count;
 }
+
+int write(const char *buf, size_t count) { return serial_write(buf, count); }

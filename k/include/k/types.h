@@ -12,4 +12,6 @@ typedef signed int s32;
 typedef unsigned long long u64;
 typedef signed long long s64;
 
+typedef unsigned long int uptr;
+
 #endif
