@@ -13,16 +13,14 @@ OBJS	= \
 	  gdt/gdt.o \
 	  gdt/gdt_flush.o \
 	  idt/idt.o \
-	  idt/isr/isr_debug.o \
-	  idt/isr/isr0.o \
-	  idt/isr/isr_handler.o \
+	  idt/idt_flush.o \
 
 
 DEPS = $(OBJS:.o=.d)
 
 all: $(TARGET)
 
-$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/  -Igdt -Iidt -Iserial
+$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial
 $(TARGET): CFLAGS += $(K_EXTRA_CFLAGS) -g
 $(TARGET): LDFLAGS += -Wl,-Tk.lds
 $(TARGET): LDLIBS = -L../libs/libc -lc
