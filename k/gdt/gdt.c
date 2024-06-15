@@ -232,12 +232,15 @@ void init_gdt(void) {
   // Set the GDT pointer properties
   gdt_ptr.limit = (sizeof(struct gdt_entry) * NB_GDT_ENTRIES) - 1;
   gdt_ptr.base = (u32)&gdt_entries;
+  printf("GDTR structure setup\n");
 
   // Set the GDT entries
   set_gdt_gates();
+  printf("GDT gates set\n");
 
   // Write the TSS entry to the GDT
   write_tss(NB_GDT_ENTRIES - 1, TSS_SS0, TSS_ESP0);
+  printf("TSS entry written\n");
 
   // Load the GDT with ASM in memory
   gdt_flush((u32)&gdt_ptr);
