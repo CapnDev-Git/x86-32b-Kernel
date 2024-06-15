@@ -23,10 +23,12 @@
  */
 #include <k/graphics_colors.h>
 #include <k/kstd.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "gdt.h"
 #include "graphics.h"
+#include "idt.h"
 #include "multiboot.h"
 #include "serial.h"
 
@@ -47,12 +49,24 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   write_fb(fb, "Serial port initialized", &line, LIGHT_GREEN);
 
   // Write a test message to the serial port
-  write("Hello Serial Port!\r\n", 20);
+  printf("Hello Serial Port!\n");
 
   // Setup GDT
   init_gdt();
   write_fb(fb, "GDT loaded", &line, YELLOW);
   write_fb(fb, "Protected mode enabled", &line, LIGHT_CYAN);
+
+  // Setup IDT
+  init_idt();
+  write_fb(fb, "IDT loaded", &line, YELLOW);
+
+  // Trigger a divide-by-zero error
+  __asm__ __volatile__("int $0x02");
+
+  printf("Shouldn't print\n");
+
+  // This code should not be reached if the divide-by-zero exception is handled
+  // correctly Write a message to framebuffer indicating completion
 
   // Halt the CPU
   for (;;)
