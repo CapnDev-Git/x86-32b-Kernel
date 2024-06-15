@@ -159,7 +159,7 @@ void isr_handler(struct iregs *regs) {
   if (regs->int_no < 32) {
     printf("-> Exception: %s\n", exception_messages[regs->int_no]);
     printf("-> Error code: %d\n", regs->err_code);
-
+    printf("Processor halted!\n");
     for (;;)
       ;
   }
