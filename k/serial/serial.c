@@ -1,6 +1,6 @@
 #include "serial.h"
 
-#include "io.h"
+#include "../io.h"
 #include <k/types.h>
 
 // Serial port addresses
