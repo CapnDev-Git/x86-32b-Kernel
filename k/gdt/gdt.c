@@ -6,24 +6,24 @@
 
 /**
  * \brief Load the Global Descriptor Table (GDT) into memory, ASM function in
- * gdt_flush.S
+ * gdt_setup.S
  * \param u32 The address of the GDT pointer structure (struct gdtr)
  */
 extern void gdt_flush(u32 gdt_ptr);
 
 /**
  * \brief Load the Task State Segment (TSS) into memory, ASM function in
- * gdt_flush.S
+ * gdt_setup.S
  */
 extern void tss_flush(void);
 
 /**
- * \brief Enable protected mode, ASM function in gdt_flush.S
+ * \brief Enable protected mode, ASM function in gdt_setup.S
  */
 extern void enable_protected_mode(void);
 
 /**
- * \brief Reload the segments, ASM function in gdt_flush.S
+ * \brief Reload the segments, ASM function in gdt_setup.S
  */
 extern void reload_segments(void);
 
