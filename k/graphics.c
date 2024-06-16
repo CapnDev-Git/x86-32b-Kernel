@@ -35,5 +35,5 @@ void init_fb(char *fb, size_t *line) {
   clear_fb(fb);
 
   // Write the initialization message
-  write_fb(fb, "Framebuffer initialized", line, LIGHT_GREEN);
+  write_fb(fb, "Framebuffer initialized", line, YELLOW);
 }
