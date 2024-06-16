@@ -10,7 +10,20 @@
  * structure provided
  * \param regs The interrupt registers structure
  */
-void irq_handler(struct iregs *regs);
+void irq_handler(struct iregs *r);
+
+/**
+ * \brief Adds a handler for the given IRQ
+ * \param irq The IRQ number
+ * \param handler The handler function
+ */
+void irq_install_handler(int irq, void (*handler)(struct iregs *r));
+
+/**
+ * \brief Removes the handler for the given IRQ
+ * \param irq The IRQ number
+ */
+void irq_uninstall_handler(int irq);
 
 // IRQ handlers (declaration for ASM linkage)
 extern void irq0(void);  // Timer
