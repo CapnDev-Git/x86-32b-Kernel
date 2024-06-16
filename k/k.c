@@ -31,7 +31,7 @@
 #include "idt.h"
 #include "multiboot.h"
 #include "serial.h"
-#include "timer.h"
+#include "timer/timer.h"
 
 #define VGA_ADDRESS 0xb8000
 

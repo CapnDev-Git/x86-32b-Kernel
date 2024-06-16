@@ -3,8 +3,8 @@
 #include <k/types.h> // u8, u32, u64
 #include <stdio.h>   // printf
 
-#include "../io.h" // outb
-#include "irq.h"   // irq_install_handler
+#include "../../io.h" // outb
+#include "irq.h"      // irq_install_handler
 
 #define TIMER_ZERO 0
 #define CLOCK_TICK_RATE 1193182

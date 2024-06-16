@@ -14,17 +14,17 @@ OBJS	= \
 	  gdt/gdt_setup.o \
 	  idt/idt.o \
 	  idt/idt_setup.o \
-	  idt/irq.o \
-	  idt/irq_handler.o \
-	  idt/isr.o \
-	  idt/isr_handler.o \
-	  timer/timer.o \
+	  irqs/irq.o \
+	  irqs/irq_handler.o \
+	  irqs/timer/timer.o \
+	  isrs/isr.o \
+	  isrs/isr_handler.o \
 
 DEPS = $(OBJS:.o=.d)
 
 all: $(TARGET)
 
-$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial -Itimer
+$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial -Iirqs -Iisrs 
 $(TARGET): CFLAGS += $(K_EXTRA_CFLAGS) -g
 $(TARGET): LDFLAGS += -Wl,-Tk.lds
 $(TARGET): LDLIBS = -L../libs/libc -lc
