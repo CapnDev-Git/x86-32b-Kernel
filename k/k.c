@@ -29,6 +29,7 @@
 #include "gdt.h"
 #include "graphics.h"
 #include "idt.h"
+#include "keyboard/keyboard.h"
 #include "multiboot.h"
 #include "serial.h"
 #include "timer/timer.h"
@@ -42,28 +43,40 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   size_t line = 0;
   char *fb = (void *)VGA_ADDRESS; // Framebuffer address
 
+  /* --- Setup Framebuffer --- */
   // Initialize the framebuffer
   init_fb(fb, &line);
 
+  /* --- Setup Serial --- */
   // Initialize the serial port at COM1
   serial_init();
-  write_fb(fb, "Serial port initialized", &line, LIGHT_GREEN);
+  write_fb(fb, "Serial port initialized", &line, YELLOW);
 
   // Write a test message to the serial port
   printf("Hello Serial Port!\n");
 
+  /* --- Setup Tables --- */
   // Setup GDT
+  write_fb(fb, "Loading GDT...", &line, LIGHT_RED);
   init_gdt();
-  write_fb(fb, "GDT loaded", &line, YELLOW);
+  write_fb(fb, "GDT loaded", &line, LIGHT_GREEN);
   write_fb(fb, "Protected mode enabled", &line, LIGHT_CYAN);
 
   // Setup IDT
+  write_fb(fb, "Loading IDT...", &line, LIGHT_RED);
   init_idt();
-  write_fb(fb, "IDT loaded", &line, YELLOW);
+  write_fb(fb, "IDT loaded", &line, LIGHT_GREEN);
+
+  /* --- Setup IRQs --- */
+  write_fb(fb, "Loading IRQs...", &line, LIGHT_RED);
 
   // Setup the timer
   init_timer();
-  write_fb(fb, "Timer initialized", &line, LIGHT_MAGENTA);
+  write_fb(fb, "Timer initialized", &line, LIGHT_CYAN);
+
+  // Setup the keyboard
+  init_keyboard();
+  write_fb(fb, "Keyboard initialized", &line, LIGHT_CYAN);
 
   // Trigger a divide-by-zero error
   // __asm__ volatile("int $0x00");
