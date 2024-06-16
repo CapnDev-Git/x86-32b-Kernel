@@ -61,12 +61,8 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   write_fb(fb, "IDT loaded", &line, YELLOW);
 
   // Trigger a divide-by-zero error
-  __asm__ __volatile__("int $0x02");
-
+  __asm__ volatile("int $0x00");
   printf("Shouldn't print\n");
-
-  // This code should not be reached if the divide-by-zero exception is handled
-  // correctly Write a message to framebuffer indicating completion
 
   // Halt the CPU
   for (;;)
