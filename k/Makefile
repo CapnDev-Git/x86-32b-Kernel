@@ -18,13 +18,13 @@ OBJS	= \
 	  idt/irq_handler.o \
 	  idt/isr.o \
 	  idt/isr_handler.o \
-
+	  timer/timer.o \
 
 DEPS = $(OBJS:.o=.d)
 
 all: $(TARGET)
 
-$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial
+$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial -Itimer
 $(TARGET): CFLAGS += $(K_EXTRA_CFLAGS) -g
 $(TARGET): LDFLAGS += -Wl,-Tk.lds
 $(TARGET): LDLIBS = -L../libs/libc -lc
