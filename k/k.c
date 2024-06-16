@@ -78,9 +78,9 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   init_keyboard();
   write_fb(fb, "Keyboard initialized", &line, LIGHT_CYAN);
 
-  // Trigger a divide-by-zero error
-  // __asm__ volatile("int $0x00");
-  // printf("Shouldn't print\n");
+  /* Other IRQs... */
+
+  write_fb(fb, "IRQs loaded", &line, LIGHT_GREEN);
 
   // Halt the CPU
   for (;;)
