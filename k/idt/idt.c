@@ -165,8 +165,8 @@ static void init_PIC(void) {
   outb(PIC_SLAVE_B, OPERATION_MODE);  // normal, no buffering, not special
 
   // Mask all IRQs
-  outb(PIC_MASTER_B, MASK_IRQ);
-  outb(PIC_SLAVE_B, MASK_IRQ);
+  outb(PIC_MASTER_B, UNMASK_IRQ); // Master PIC is cascaded to IRQ2
+  outb(PIC_SLAVE_B, UNMASK_IRQ);  // Slave PIC is cascaded to IRQ2
 }
 
 void init_idt(void) {
