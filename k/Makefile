@@ -11,9 +11,13 @@ OBJS	= \
 	  graphics.o \
 	  serial/serial.o \
 	  gdt/gdt.o \
-	  gdt/gdt_flush.o \
+	  gdt/gdt_setup.o \
 	  idt/idt.o \
-	  idt/idt_flush.o \
+	  idt/idt_setup.o \
+	  idt/irq.o \
+	  idt/irq_handler.o \
+	  idt/isr.o \
+	  idt/isr_handler.o \
 
 
 DEPS = $(OBJS:.o=.d)
