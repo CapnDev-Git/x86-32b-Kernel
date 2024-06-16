@@ -31,6 +31,7 @@
 #include "idt.h"
 #include "multiboot.h"
 #include "serial.h"
+#include "timer.h"
 
 #define VGA_ADDRESS 0xb8000
 
@@ -60,9 +61,13 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   init_idt();
   write_fb(fb, "IDT loaded", &line, YELLOW);
 
+  // Setup the timer
+  init_timer();
+  write_fb(fb, "Timer initialized", &line, LIGHT_MAGENTA);
+
   // Trigger a divide-by-zero error
-  __asm__ volatile("int $0x00");
-  printf("Shouldn't print\n");
+  // __asm__ volatile("int $0x00");
+  // printf("Shouldn't print\n");
 
   // Halt the CPU
   for (;;)
