@@ -17,6 +17,7 @@ OBJS	= \
 	  irqs/irq.o \
 	  irqs/irq_handler.o \
 	  irqs/timer/timer.o \
+	  irqs/keyboard/keyboard.o \
 	  isrs/isr.o \
 	  isrs/isr_handler.o \
 
