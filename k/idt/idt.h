@@ -4,6 +4,7 @@
 #include <k/types.h>
 
 #define NB_IDT_ENTRIES 256
+#define NB_DEFINED_INTERRUPTS 32
 
 /**
  * \brief Interrupt registers structure used to store the state of the CPU when

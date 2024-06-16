@@ -41,13 +41,17 @@ static char *exception_messages[NB_ISRS] = {
 };
 
 void isr_handler(struct iregs *regs) {
+  // Log the interrupt number
   printf("Received interrupt: %d\n", regs->int_no);
 
   // If the interrupt number is less than 32, it's an exception (fault)
-  if (regs->int_no < 32) {
+  if (regs->int_no < NB_DEFINED_INTERRUPTS) {
+    // Log the exception
     printf("-> Exception: %s\n", exception_messages[regs->int_no]);
     printf("-> Error code: %d\n", regs->err_code);
     printf("Processor halted!\n");
+
+    // Halt the processor
     for (;;)
       ;
   }

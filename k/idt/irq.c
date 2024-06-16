@@ -1,9 +1,9 @@
-#include "idt.h"
+#include "irq.h"
 
 #include "../io.h"
 
 // IRQ handlers array
-static void *irq_routines[16] = {0};
+static void *irq_routines[NB_IRQS] = {0};
 
 /**
  * \brief Adds a handler for the given IRQ
@@ -23,7 +23,7 @@ static void irq_uninstall_handler(int irq) { irq_routines[irq] = 0; }
 void irq_handler(struct iregs *regs) {
   // Get the handler from the IRQ routine
   void (*handler)(struct iregs * r);
-  handler = irq_routines[regs->int_no - 32];
+  handler = irq_routines[regs->int_no - NB_DEFINED_INTERRUPTS];
 
   // Call the handler if there is one associated with the IRQ
   if (handler)

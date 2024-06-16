@@ -4,7 +4,6 @@
 #define NB_IRQS 16
 
 #include "idt.h"
-#include <k/types.h>
 
 /**
  * \brief Triggers the corresponding IRQ handler from the interrupt registers
