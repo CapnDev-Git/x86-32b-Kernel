@@ -1,11 +1,12 @@
-#include "idt.h"
+#include "idt.h" // struct idt_gate, struct idtr, idt_flush symbol
 
-#include "../io.h"
-#include <k/types.h>
-#include <stdio.h>
-#include <string.h>
+#include <k/types.h> // u8, u16, u32
+#include <stdio.h>   // printf
+#include <string.h>  // memset
 
-extern void isr0(void);
+#include "../io.h" // outb
+#include "irq.h"   // IRQ handlers
+#include "isr.h"   // ISR handlers
 
 struct idt_gate {
   u16 base_low;
@@ -20,6 +21,10 @@ struct idtr {
   u32 base;
 } __attribute__((packed));
 
+/**
+ * \brief Sets up the IDT table in memory ASM function in
+ * idt_setup.S
+ */
 extern void idt_flush(u32 idt_ptr);
 
 #define NB_IDT_ENTRIES 256
@@ -27,6 +32,13 @@ extern void idt_flush(u32 idt_ptr);
 struct idt_gate idt_entries[NB_IDT_ENTRIES];
 struct idtr idtr;
 
+/**
+ * \brief Sets an IDT gate
+ * \param num The IDT entry number
+ * \param base The base address of the interrupt handler
+ * \param sel The segment selector
+ * \param flags The flags for the IDT entry
+ */
 static void set_idt_gate(u8 num, u32 base, u16 sel, u8 flags) {
   idt_entries[num].base_low = base & 0xFFFF;
   idt_entries[num].base_high = (base >> 16) & 0xFFFF;
@@ -35,6 +47,9 @@ static void set_idt_gate(u8 num, u32 base, u16 sel, u8 flags) {
   idt_entries[num].flags = flags | 0x60;
 }
 
+/**
+ * \brief Sets up all the IDT gates
+ */
 static void set_idt_gates(void) {
   set_idt_gate(0, (u32)isr0, 0x08, 0x8E);   // Divide by zero
   set_idt_gate(1, (u32)isr1, 0x08, 0x8E);   // Debug
@@ -90,6 +105,9 @@ static void set_idt_gates(void) {
   set_idt_gate(177, (u32)isr177, 0x08, 0x8E); // Syscall (0xB1)
 }
 
+/**
+ * \brief Initializes the Programmable Interrupt Controller (PIC)
+ */
 static void init_PIC(void) {
   // Start the PIC
   outb(0x20, 0x11);
@@ -100,8 +118,8 @@ static void init_PIC(void) {
   outb(0xA1, 0x28); // vector offset for slave PIC
 
   // Set the PIC to 8086 mode
-  outb(0x21, 0x04); // 0000 0100
-  outb(0xA1, 0x02); // 0000 0010
+  outb(0x21, 0x04);
+  outb(0xA1, 0x02);
 
   // Set the PIC to auto EOI mode
   outb(0x21, 0x01);
@@ -110,82 +128,6 @@ static void init_PIC(void) {
   // Mask all interrupts
   outb(0x21, 0x0);
   outb(0xA1, 0x0);
-}
-
-static char *exception_messages[] = {"Division By Zero",
-                                     "Debug",
-                                     "Non Maskable Interrupt",
-                                     "Breakpoint",
-                                     "Into Detected Overflow",
-                                     "Out of Bounds",
-                                     "Invalid Opcode",
-                                     "No Coprocessor",
-                                     "Double fault",
-                                     "Coprocessor Segment Overrun",
-                                     "Bad TSS",
-                                     "Segment not present",
-                                     "Stack fault",
-                                     "General protection fault",
-                                     "Page fault",
-                                     "Unknown Interrupt",
-                                     "Coprocessor Fault",
-                                     "Alignment Fault",
-                                     "Machine Check",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved",
-                                     "Reserved"};
-
-struct iregs {
-  u32 cr2;
-  u32 ds;
-  u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
-  u32 int_no, err_code;
-  u32 eip, cs, eflags, useresp, ss;
-};
-
-void isr_handler(struct iregs *regs) {
-  printf("Received interrupt: %d\n", regs->int_no);
-
-  if (regs->int_no < 32) {
-    printf("-> Exception: %s\n", exception_messages[regs->int_no]);
-    printf("-> Error code: %d\n", regs->err_code);
-    printf("Processor halted!\n");
-    for (;;)
-      ;
-  }
-}
-
-static void *irq_routines[16] = {0};
-static void irq_install_handler(int irq, void (*handler)(struct iregs *r)) {
-  irq_routines[irq] = handler;
-}
-static void irq_uninstall_handler(int irq) { irq_routines[irq] = 0; }
-
-void irq_handler(struct iregs *regs) {
-  // Get the handler from the IRQ routine
-  void (*handler)(struct iregs * r);
-  handler = irq_routines[regs->int_no - 32];
-
-  // Call the handler if there is one associated with the IRQ
-  if (handler)
-    handler(regs);
-
-  // Send an EOI (end of interrupt) signal to the PICs.
-  if (regs->int_no >= 40)
-    outb(0xA0, 0x20);
-
-  // Send an EOI to the master PIC
-  outb(0x20, 0x20);
 }
 
 void init_idt(void) {
