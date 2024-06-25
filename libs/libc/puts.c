@@ -2,7 +2,4 @@
 
 int write(const char *s, size_t nb);
 
-int puts(const char *s)
-{
-	return write(s, strlen(s));
-}
+int puts(const char *s) { return write(s, strlen(s)); }

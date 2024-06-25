@@ -14,20 +14,19 @@
 
 #define malloc_getpagesize 4096
 
-#define MALLOC_FAILURE_ACTION	\
-	do {	\
-		printf("[!] malloc internal error \n"); \
-	} while(0)
+#define MALLOC_FAILURE_ACTION                                                  \
+  do {                                                                         \
+    printf("[!] malloc internal error \n");                                    \
+  } while (0)
 
+#define USAGE_ERROR_ACTION(m, p)                                               \
+  do {                                                                         \
+    printf("[!] malloc: corrupted chunk: 0x%x\n", p);                          \
+  } while (0)
 
-#define USAGE_ERROR_ACTION(m, p)	\
-	do {  \
-		printf("[!] malloc: corrupted chunk: 0x%x\n", p); \
-	} while (0)
-
-#define abort() \
-	do {						\
-		printf("[!!!] malloc: abort\n");	\
-		for (;;)				\
-			continue;			\
-	} while(0)
+#define abort()                                                                \
+  do {                                                                         \
+    printf("[!!!] malloc: abort\n");                                           \
+    for (;;)                                                                   \
+      continue;                                                                \
+  } while (0)

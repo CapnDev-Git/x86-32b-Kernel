@@ -1,11 +1,10 @@
-#include <stddef.h>
 #include <ctype.h>
+#include <stddef.h>
 
-int strncasecmp(const char *s1, const char *s2, size_t n)
-{
-	for (; *s1 && n > 0; s1++, s2++, n--)
-		if (tolower(*s1) != tolower(*s2))
-			break;
+int strncasecmp(const char *s1, const char *s2, size_t n) {
+  for (; *s1 && n > 0; s1++, s2++, n--)
+    if (tolower(*s1) != tolower(*s2))
+      break;
 
-	return n ? tolower(*s1) - tolower(*s2) : 0;
+  return n ? tolower(*s1) - tolower(*s2) : 0;
 }
