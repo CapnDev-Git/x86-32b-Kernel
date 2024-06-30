@@ -24,6 +24,8 @@
 
 #define __packed __attribute__((__packed__))
 
+#include <k/types.h>
+
 /* Structures used for twin values */
 
 struct endian32 {
@@ -133,6 +135,6 @@ struct iso_prim_voldesc {
   char date_expir[ISO_LDATE_LEN];      /* Expiration date */
   char date_effect[ISO_LDATE_LEN];     /* Effective date */
   u8 filestrutc_version;               /* File Structure Version (1) */
-} __packed;
+} __packed;                            /* 2048 bytes */
 
 #endif /* !ISO9660_H */
