@@ -16,7 +16,7 @@
 #define DIVISOR_LOW(divisor) ((u8)(divisor & 0xFF))
 #define DIVISOR_HIGH(divisor) ((u8)((divisor >> 8) & 0xFF))
 
-u64 ticks = TIMER_ZERO;
+u32 ticks = TIMER_ZERO;
 u32 freq = INTERRUPT_FREQ_RATE;
 
 /**
@@ -29,17 +29,22 @@ static void on_irq0(struct iregs *regs) {
   // Increment the tick count
   ticks++;
 
-  // Log the tick count
-  // printf("Tick: %d\n", ticks);
+  // Log the tick count every second
+  if (ticks % INTERRUPT_FREQ_RATE == 0) {
+    // printf("Tick: %lu\n", ticks / 100);
+  }
 }
 
-void init_timer(void) {
+int init_timer(void) {
   // Reset the tick count
   ticks = TIMER_ZERO;
   printf("Initializing timer\n");
 
   // Install the IRQ handler for the timer
-  irq_install_handler(0, &on_irq0);
+  if (irq_install_handler(0, &on_irq0) != 0) {
+    printf("Failed to install timer handler\n");
+    return -1;
+  }
 
   // Set the timer frequency
   u32 divisor = CLOCK_TICK_RATE / freq;
@@ -48,5 +53,7 @@ void init_timer(void) {
   outb(CONTROL_REGISTER, PIT_CONFIG);     // counter 0, LB/HB, mode 2, binary
   outb(COUNTER_0, DIVISOR_LOW(divisor));  // low byte of divisor to PIT.c0
   outb(COUNTER_0, DIVISOR_HIGH(divisor)); // high byte of divisor to PIT.c0
-  printf("Timer initiazed on Mode 2, divisor: %d\n", divisor);
+  printf("Timer initialized on Mode 2, divisor: %d\n", divisor);
+
+  return 0; // Success
 }

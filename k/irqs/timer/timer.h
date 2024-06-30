@@ -4,6 +4,6 @@
 /**
  * \brief Initializes the timer
  */
-void init_timer(void);
+int init_timer(void);
 
 #endif /* ! TIMER_H */
