@@ -4,6 +4,6 @@
 /**
  * \brief Initialize the keyboard
  */
-void init_keyboard(void);
+int init_keyboard(void);
 
 #endif /* ! KEYBOARD_H */
