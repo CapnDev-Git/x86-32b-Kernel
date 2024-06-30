@@ -239,12 +239,28 @@ void *memory_reserve_ex(unsigned int base_addr, size_t size) {
 
 void *memory_reserve(size_t size) { return memory_reserve_ex(0, size); }
 
+static void merge_free_neighbors(struct memory_map *m) {
+  struct memory_map *next = (struct memory_map *)m->list.next;
+  if (next != (struct memory_map *)&memory_map && next->type == 0) {
+    m->size += next->size;
+    list_remove(&next->list);
+    cache_free(memory_map_cache, next);
+  }
+
+  struct memory_map *prev = (struct memory_map *)m->list.prev;
+  if (prev != (struct memory_map *)&memory_map && prev->type == 0) {
+    prev->size += m->size;
+    list_remove(&m->list);
+    cache_free(memory_map_cache, m);
+  }
+}
+
 void memory_release(void *ptr) {
   struct memory_map *m;
   list_for_each(m, &memory_map, list) {
     if (m->base_addr == (unsigned int)ptr) {
       m->type = 0;
-      /* FIXME: need to merge free blocks */
+      merge_free_neighbors(m);
       return;
     }
   }
