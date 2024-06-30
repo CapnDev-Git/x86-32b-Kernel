@@ -6,9 +6,10 @@
 // IRQ handlers array
 static void *irq_routines[NB_IRQS] = {0};
 
-void irq_install_handler(int irq, void (*handler)(struct iregs *r)) {
+int irq_install_handler(int irq, void (*handler)(struct iregs *r)) {
   printf("Installing IRQ handler %d\n", irq);
   irq_routines[irq] = handler;
+  return 0;
 }
 
 void irq_uninstall_handler(int irq) {

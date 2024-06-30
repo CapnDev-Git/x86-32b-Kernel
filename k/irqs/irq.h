@@ -16,8 +16,9 @@ void irq_handler(struct iregs *r);
  * \brief Adds a handler for the given IRQ
  * \param irq The IRQ number
  * \param handler The handler function
+ * \return 0 if the handler was successfully installed, -1 otherwise
  */
-void irq_install_handler(int irq, void (*handler)(struct iregs *r));
+int irq_install_handler(int irq, void (*handler)(struct iregs *r));
 
 /**
  * \brief Removes the handler for the given IRQ
