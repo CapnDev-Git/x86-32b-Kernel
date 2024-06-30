@@ -1,31 +1,11 @@
-/*
- * Copyright (c) LSE
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY LSE AS IS AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL LSE BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+#include "memory.h"
 #include <k/graphics_colors.h>
+#include <k/iso9660.h>
 #include <k/kstd.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "atapi.h"
 #include "gdt.h"
 #include "graphics.h"
 #include "idt.h"
@@ -36,9 +16,17 @@
 
 #define VGA_ADDRESS 0xb8000
 
+static void halt_CPU(void) {
+  for (;;)
+    asm volatile("hlt");
+}
+
 void k_main(unsigned long magic, multiboot_info_t *info) {
   (void)magic;
   (void)info;
+
+  // Initialize the memory manager
+  memory_init(info);
 
   size_t line = 0;
   char *fb = (void *)VGA_ADDRESS; // Framebuffer address
@@ -58,31 +46,42 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   /* --- Setup Tables --- */
   // Setup GDT
   write_fb(fb, "Loading GDT...", &line, LIGHT_RED);
-  init_gdt();
+  if (init_gdt() != 0) {
+    write_fb(fb, "Failed to load GDT", &line, LIGHT_RED);
+    halt_CPU();
+  }
   write_fb(fb, "GDT loaded", &line, LIGHT_GREEN);
   write_fb(fb, "Protected mode enabled", &line, LIGHT_CYAN);
 
   // Setup IDT
   write_fb(fb, "Loading IDT...", &line, LIGHT_RED);
-  init_idt();
+  if (init_idt() != 0) {
+    write_fb(fb, "Failed to load IDT", &line, LIGHT_RED);
+    halt_CPU();
+  }
   write_fb(fb, "IDT loaded", &line, LIGHT_GREEN);
 
   /* --- Setup IRQs --- */
   write_fb(fb, "Loading IRQs...", &line, LIGHT_RED);
 
   // Setup the timer
-  init_timer();
-  write_fb(fb, "Timer initialized", &line, LIGHT_CYAN);
+  if (init_timer() != 0) {
+    write_fb(fb, "Failed to initialize timer", &line, LIGHT_RED);
+    halt_CPU();
+  }
+  write_fb(fb, "Timer initialized", &line, YELLOW);
 
   // Setup the keyboard
-  init_keyboard();
-  write_fb(fb, "Keyboard initialized", &line, LIGHT_CYAN);
+  if (init_keyboard() != 0) {
+    write_fb(fb, "Failed to initialize keyboard", &line, LIGHT_RED);
+    halt_CPU();
+  }
+  write_fb(fb, "Keyboard initialized", &line, YELLOW);
 
   /* Other IRQs... */
 
   write_fb(fb, "IRQs loaded", &line, LIGHT_GREEN);
 
   // Halt the CPU
-  for (;;)
-    asm volatile("hlt");
+  halt_CPU();
 }
