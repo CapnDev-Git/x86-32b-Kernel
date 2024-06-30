@@ -3,11 +3,6 @@
 
 #include <stddef.h>
 
-/*
- * This list data structure is a verbatim copy from wayland-util.h from the
- * Wayland project; except that wl_ prefix has been removed.
- */
-
 struct list {
   struct list *prev;
   struct list *next;

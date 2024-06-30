@@ -1,8 +1,3 @@
-/*
- * This list data structure is verbatim copy from wayland-util.h from the
- * Wayland project; except that wl_ prefix has been removed.
- */
-
 #include "list.h"
 
 void list_init(struct list *list) {
