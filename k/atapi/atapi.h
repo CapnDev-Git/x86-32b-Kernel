@@ -38,13 +38,12 @@
 
 /* Status bits */
 #define ERR (1 << 0)
+#define ABRT (1 << 2)
 #define DRQ (1 << 3)
 #define SRV (1 << 4)
 #define DF (1 << 5)
 #define RDY (1 << 6)
 #define BSY (1 << 7)
-
-#define ABRT (1 << 2)
 
 /* ATAPI signature */
 #define ATAPI_SIG_SC 0x01
@@ -83,5 +82,10 @@ struct SCSI_packet {
   u8 flags_hi;
   u8 control;
 } __packed;
+
+int discover_atapi_drive(void);
+int send_read_block_command(u16 reg, size_t lba);
+void *read_block(size_t lba);
+// int read_block(u16 *buffer, size_t lba);
 
 #endif /* !ATAPI_H_ */
