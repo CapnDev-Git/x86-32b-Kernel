@@ -20,6 +20,7 @@ OBJS	= \
 	  irqs/keyboard/keyboard.o \
 	  isrs/isr.o \
 	  isrs/isr_handler.o \
+	  atapi/atapi.o \
 
 DEPS = $(OBJS:.o=.d)
 
