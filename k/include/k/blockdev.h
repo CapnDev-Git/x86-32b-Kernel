@@ -22,7 +22,6 @@ static inline void *block_read(struct blockdev *bd, size_t lba) {
   assert(bd);
   assert(bd->ops);
   assert(bd->ops->read);
-
   return bd->ops->read(bd, lba);
 }
 
@@ -30,7 +29,6 @@ static inline void block_free(struct blockdev *bd, void *ptr) {
   assert(bd);
   assert(bd->ops);
   assert(bd->ops->free_blk);
-
   bd->ops->free_blk(bd, ptr);
 }
 
