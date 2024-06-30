@@ -1,17 +1,19 @@
 #ifndef IDT_H
 #define IDT_H
 
-#include <k/types.h>
+#include <k/types.h> // u32
 
-#define NB_IDT_ENTRIES 256
-#define NB_DEFINED_INTERRUPTS 32
+#define NB_IDT_ENTRIES 256 // in header to be used by ISR and IRQ dependencies
+#define NB_DEFINED_INTERRUPTS 32 // 0-31 are reserved for CPU exceptions
 
 /**
  * \brief Interrupt registers structure used to store the state of the CPU when
  * an interrupt is triggered.
  * The structure is pushed onto the stack by the CPU when an interrupt is
  * triggered. The structure is used by the interrupt service routine (ISR) to
- * determine the cause of the interrupt and to handle it accordingly.
+ * determine the cause of the interrupt and to handle it accordingly. The
+ * structure is also used by the interrupt request (IRQ) handlers to determine
+ * the cause of the interrupt and to handle it accordingly.
  * \param cr2 The address that caused the page fault
  * \param ds The data segment selector
  * \param edi, esi, ebp, esp, ebx, edx, ecx, eax The general purpose registers
@@ -36,6 +38,6 @@ struct iregs {
  * \brief Populates the IDT with the default handlers & loads the IDTR strcture
  * into the CPU.
  */
-void init_idt(void);
+int init_idt(void);
 
 #endif /* ! IDT_H */

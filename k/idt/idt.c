@@ -8,12 +8,14 @@
 #include "irq.h"   // IRQ handlers
 #include "isr.h"   // ISR handlers
 
+// IDT-related
 #define INTERRUPT_GATE_LOW(base) (base & 0xFFFF)
 #define INTERRUPT_GATE_HIGH(base) ((base >> 16) & 0xFFFF)
 #define INTERRUPT_GATE_FLAGS(flags) (flags | 0x60)
 #define INTERRUPT_SEL 0x08
 #define INTERRUPT_FLAGS 0x8E
 
+// Programmable Interrupt Controller (PIC) ports and values
 #define PIC_MASTER_A 0x20
 #define PIC_MASTER_B 0x21
 #define PIC_SLAVE_A 0xA0
@@ -27,6 +29,21 @@
 #define MASK_IRQ 0xFF
 #define UNMASK_IRQ 0x00
 
+/**
+ * \brief IDT gate structure
+ * The IDT gate structure is used to define the properties of an interrupt
+ * descriptor in the Interrupt Descriptor Table (IDT). The IDT is a structure
+ * used by the CPU to store interrupt descriptors. The IDT gate structure is
+ * used to define the properties of an interrupt descriptor in the IDT. The IDT
+ * gate structure is used by the CPU to determine the properties of an interrupt
+ * handler when an interrupt is triggered.
+ * \param base_low The low 16 bits of the base address of the interrupt handler
+ * \param sel The segment selector
+ * \param zero This field is always zero
+ * \param flags The flags for the IDT entry
+ * \param base_high The high 16 bits of the base address of the interrupt
+ * handler
+ */
 struct idt_gate {
   u16 base_low;
   u16 sel;
@@ -35,6 +52,14 @@ struct idt_gate {
   u16 base_high;
 } __attribute__((packed));
 
+/**
+ * \brief IDTR structure
+ * The IDTR structure is used to define the properties of the Interrupt
+ * Descriptor Table Register (IDTR). The IDTR structure is used to define the
+ * properties of the IDT in memory.
+ * \param limit The size of the IDT
+ * \param base The base address of the IDT
+ */
 struct idtr {
   u16 limit;
   u32 base;
@@ -43,6 +68,7 @@ struct idtr {
 /**
  * \brief Sets up the IDT table in memory ASM function in
  * idt_setup.S
+ * \param idt_ptr The address of the IDTR structure
  */
 extern void idt_flush(u32 idt_ptr);
 
@@ -57,14 +83,9 @@ struct idtr idtr;
  * \param flags The flags for the IDT entry
  */
 static void set_idt_gate(u8 num, u32 base, u16 sel, u8 flags) {
-  // Set the base addresses of the interrupt handler
   idt_entries[num].base_low = INTERRUPT_GATE_LOW(base);
   idt_entries[num].base_high = INTERRUPT_GATE_HIGH(base);
-
-  // Set the segment selector
   idt_entries[num].sel = sel;
-
-  // Set the zero field and flags
   idt_entries[num].zero = 0;
   idt_entries[num].flags = INTERRUPT_GATE_FLAGS(flags);
 }
@@ -169,7 +190,7 @@ static void init_PIC(void) {
   outb(PIC_SLAVE_B, UNMASK_IRQ);  // Slave PIC is cascaded to IRQ2
 }
 
-void init_idt(void) {
+int init_idt(void) {
   // Set the IDTR properties & clear the IDT
   idtr.limit = (sizeof(struct idt_gate) * NB_IDT_ENTRIES) - 1;
   idtr.base = (u32)&idt_entries;
@@ -186,4 +207,6 @@ void init_idt(void) {
 
   // Load the IDT
   idt_flush((u32)&idtr);
+
+  return 0; // Success
 }
