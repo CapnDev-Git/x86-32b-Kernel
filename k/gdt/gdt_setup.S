@@ -28,7 +28,7 @@ reload_segments:
     mov %ax, %ss           # Load the stack segment descriptor
     
     # Far jump to flush the prefetch queue and set the CS register
-    ljmp $0x08, $.flush2     # 0x08 is the offset to our code segment
+    ljmp $0x08, $.flush2   # 0x08 is the offset to our code segment
 .flush2:
     ret                    # Return from the function
 
