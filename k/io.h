@@ -23,4 +23,10 @@ static inline u16 inw(u16 port) {
   return res;
 }
 
+static inline void outsw(u16 port, const void *addr, u32 count) {
+  asm volatile("cld; rep outsw"
+               : /* No output */
+               : "S"(addr), "c"(count), "d"(port));
+}
+
 #endif /* !IO_H_ */
