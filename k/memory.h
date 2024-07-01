@@ -12,7 +12,9 @@ struct memory_map {
 };
 
 void memory_dump();
+void memory_dump_leaks(void);
 void memory_init(multiboot_info_t *info);
+void *xmemory_reserve(size_t size);
 void *memory_reserve(size_t size);
 void *memory_reserve_ex(unsigned int base_addr, size_t size);
 void memory_release(void *ptr);
