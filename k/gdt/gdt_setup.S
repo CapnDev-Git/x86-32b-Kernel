@@ -31,6 +31,3 @@ reload_segments:
     ljmp $0x08, $.flush2   # 0x08 is the offset to our code segment
 .flush2:
     ret                    # Return from the function
-
-
-
