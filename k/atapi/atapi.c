@@ -162,10 +162,10 @@ int send_SCSI_packet(struct SCSI_packet *pkt, u16 reg, u16 size) {
   // Wait for the device to request a packet
   wait_packet_request(reg);
   // printf("Device requested a packet\n");
+  busy_wait(reg); // not sure if this is needed
 
   // Send the packet (word by word)
   outsw(ATA_REG_DATA(reg), (u16 *)pkt, PACKET_SZ / 2);
-  printf("Packet %d sent\n", pkt->op_code);
   return 0;
 }
 
@@ -188,9 +188,10 @@ int send_read_block_command(u16 reg, size_t lba) {
     printf("Failed to send SCSI packet.\n");
     return -1;
   } else
-    printf("SCSI packet successfully sent\n");
+    // printf("SCSI packet successfully sent\n");
 
-  return 0; // Success
+    busy_wait(reg); // not sure if this is needed
+  return 0;         // Success
 }
 
 void *read_block(size_t lba) {
@@ -201,8 +202,8 @@ void *read_block(size_t lba) {
   }
 
   // Allocate memory for the block
-  void *buffer = memory_reserve(CD_BLOCK_SZ);
-  printf("Memory reserved for fetching block %d\n", lba);
+  void *buffer = xmemory_reserve(CD_BLOCK_SZ);
+  // printf("Memory reserved for fetching block %d\n", lba);
 
   // Send the read block command
   if (send_read_block_command(atapi_drive.reg_type, lba) != 0) {
@@ -216,9 +217,9 @@ void *read_block(size_t lba) {
 
   // Wait for the command to complete
   wait_command_complete(atapi_drive.reg_type);
-  printf("Reading of block %d complete\n", lba);
+  // printf("Reading of block %d complete\n", lba);
 
   // Print the block content as hexadecimal values
-  printf("Block successfully read\n");
+  // printf("Block successfully read\n");
   return buffer; // Success
 }

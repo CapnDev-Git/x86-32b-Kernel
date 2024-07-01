@@ -1,5 +1,5 @@
-#ifndef ATAPI_H_
-#define ATAPI_H_
+#ifndef ATAPI_H
+#define ATAPI_H
 
 #include <k/compiler.h>
 #include <k/types.h>
@@ -88,4 +88,4 @@ int send_read_block_command(u16 reg, size_t lba);
 void *read_block(size_t lba);
 // int read_block(u16 *buffer, size_t lba);
 
-#endif /* !ATAPI_H_ */
+#endif /* ! ATAPI_H */

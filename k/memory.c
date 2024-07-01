@@ -133,6 +133,15 @@ void memory_dump() {
   }
 }
 
+void memory_dump_leaks() {
+  struct memory_map *m;
+  list_for_each(m, &memory_map, list) {
+    if (m->type != 0 && m->base_addr > 0x100000 && m->base_addr < 0x7FE0000)
+      printf("{.base_addr=%p, .length=0x%x, .type=%u}\n", m->base_addr, m->size,
+             m->type);
+  }
+}
+
 extern void *_end[]; /* kernel data end address */
 
 #define BASE_METADATA_CACHE_NMEMB 10
@@ -235,6 +244,15 @@ static void *__memory_reserve_ex(unsigned int base_addr, size_t size,
 
 void *memory_reserve_ex(unsigned int base_addr, size_t size) {
   return __memory_reserve_ex(base_addr, size, 0);
+}
+
+void *xmemory_reserve(size_t size) {
+  void *p = memory_reserve(size);
+  if (p == NULL) {
+    printf("Failed to reserve memory\n");
+    return NULL;
+  }
+  return p;
 }
 
 void *memory_reserve(size_t size) { return memory_reserve_ex(0, size); }

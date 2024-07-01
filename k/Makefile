@@ -21,12 +21,14 @@ OBJS	= \
 	  isrs/isr.o \
 	  isrs/isr_handler.o \
 	  atapi/atapi.o \
+	  filesystem/iso_filesystem.o \
+	  filesystem/iso_helpers.o \
 
 DEPS = $(OBJS:.o=.d)
 
 all: $(TARGET)
 
-$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial -Iirqs -Iisrs
+$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial -Iirqs -Iisrs -Iatapi -Ifilesystem
 $(TARGET): CFLAGS += $(K_EXTRA_CFLAGS) -g
 $(TARGET): LDFLAGS += -Wl,-Tk.lds
 $(TARGET): LDLIBS = -L../libs/libc -lc
