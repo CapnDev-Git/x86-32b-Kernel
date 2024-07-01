@@ -9,6 +9,8 @@
 #include "gdt.h"
 #include "graphics.h"
 #include "idt.h"
+#include "iso_filesystem.h"
+#include "iso_helpers.h"
 #include "keyboard/keyboard.h"
 #include "multiboot.h"
 #include "serial.h"
@@ -81,6 +83,44 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   /* Other IRQs... */
 
   write_fb(fb, "IRQs loaded", &line, LIGHT_GREEN);
+
+  /* --- Setup ATAPI --- */
+
+  write_fb(fb, "Discovering ATAPI drive...", &line, LIGHT_RED);
+  if (discover_atapi_drive() != 0) {
+    write_fb(fb, "ATAPI drive not found", &line, LIGHT_RED);
+    halt_CPU();
+  }
+  write_fb(fb, "ATAPI drive found", &line, LIGHT_GREEN);
+
+  /* --- Setup ISO9660 --- */
+
+  write_fb(fb, "Loading ISO9660 filesystem...", &line, LIGHT_RED);
+  struct iso_filesystem *filesystem = init_filesystem();
+  if (!filesystem) {
+    write_fb(fb, "Failed to load ISO9660 filesystem", &line, LIGHT_RED);
+    halt_CPU();
+  }
+  write_fb(fb, "ISO9660 filesystem loaded", &line, LIGHT_GREEN);
+
+  // Get the file buffer from the path
+  char *path = "/USR/PONG/RES/BALL.BMP";
+  printf("Fetching file at path: %s\n", path);
+
+  write_fb(fb, "Fetching file...", &line, LIGHT_RED);
+  void *file_entry_buffer = get_file_from_path(filesystem, path);
+  if (!file_entry_buffer) {
+    printf("Failed to fetch file\n");
+    write_fb(fb, "Failed to fetch file entry", &line, LIGHT_RED);
+    halt_CPU();
+  }
+  write_fb(fb, "File entry fetched", &line, LIGHT_GREEN);
+
+  // Free all buffers & path ids
+  memory_release(file_entry_buffer);
+  free_filesystem(filesystem);
+
+  // memory_dump_leaks(); // TO FIX
 
   // Halt the CPU
   halt_CPU();
