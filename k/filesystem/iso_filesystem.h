@@ -67,9 +67,8 @@ void free_filesystem(struct iso_filesystem *iso_filesystem);
 
 /**
  * \brief Get the file buffer from a path
- * \param fs The ISO9660 filesystem structure
  * \param path The path of the file to retrieve
- * \return A pointer to the file buffer
+ * \return A pointer to the file buffer (struct iso_dir)
  * \note The function retrieves the file buffer from the ISO9660 filesystem
  * structure by navigating through the filesystem using the path provided.
  * \note The function returns NULL if the file could not be found in the
@@ -77,6 +76,6 @@ void free_filesystem(struct iso_filesystem *iso_filesystem);
  * \note The function allocates memory for the file buffer and must be freed
  * using memory_release()
  */
-void *get_file_from_path(struct iso_filesystem *fs, char *path);
+void *get_file_from_path(char *path);
 
 #endif /* ! ISO_FILESYSTEM_H_ */

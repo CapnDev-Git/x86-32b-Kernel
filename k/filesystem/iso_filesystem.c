@@ -1,11 +1,12 @@
 #include "iso_filesystem.h"
 
-#include "../memory.h" // xmemory_reserve, memory_release
-#include "atapi.h"     // macros and structs for ATAPI
-#include <k/iso9660.h> // ISO9660 structures
-#include <k/types.h>   // u8, u32
-#include <stdio.h>     // printf
-#include <string.h>    // memcpy, strncmp, strtok, strcpy, strrchr
+#include "../memory.h"   // xmemory_reserve, memory_release
+#include "atapi.h"       // macros and structs for ATAPI
+#include "iso_helpers.h" // print_buffer_hexa
+#include <k/iso9660.h>   // ISO9660 structures
+#include <k/types.h>     // u8, u32
+#include <stdio.h>       // printf
+#include <string.h>      // memcpy, strncmp, strtok, strcpy, strrchr
 
 #define PVD_BLOCK 16
 #define PVD_BLOCKS_LEN 1
@@ -32,16 +33,17 @@ struct target_folder {
  * \return The path table buffer (success) or NULL (failure)
  * \note The path table buffer must be released with memory_release after use
  * \note The path table buffer is a concatenation of all path table blocks
- * necessary to read the entire path table (size is a multiple of CD_BLOCK_SZ)
+ * necessary to read the entire path table (size is a multiple of
+ * ISO_BLOCK_SIZE)
  */
 static void *get_path_table(u32 path_table_index, u32 path_table_size) {
   // Determine the number of blocks to read
-  u32 nb_blocks = path_table_size / CD_BLOCK_SZ;
-  if (path_table_size % CD_BLOCK_SZ != 0)
+  u32 nb_blocks = path_table_size / ISO_BLOCK_SIZE;
+  if (path_table_size % ISO_BLOCK_SIZE != 0)
     nb_blocks++; // Add an extra block if there is a remainder
 
   // Allocate memory for the total buffer
-  void *total_buffer = xmemory_reserve(nb_blocks * CD_BLOCK_SZ);
+  void *total_buffer = xmemory_reserve(nb_blocks * ISO_BLOCK_SIZE);
   if (total_buffer == NULL) {
     printf("Failed to allocate memory for path table\n");
     return NULL; // Failure
@@ -58,7 +60,7 @@ static void *get_path_table(u32 path_table_index, u32 path_table_size) {
     }
 
     // Copy the bytes of the block buffer to the total buffer
-    memcpy(total_buffer + i * CD_BLOCK_SZ, tmp_block_buffer, CD_BLOCK_SZ);
+    memcpy(total_buffer + i * ISO_BLOCK_SIZE, tmp_block_buffer, ISO_BLOCK_SIZE);
     printf("Block %d copied to total buffer\n", path_table_index + i);
 
     // Free the temporary block buffer
@@ -387,7 +389,14 @@ void free_filesystem(struct iso_filesystem *fs) {
   memory_release(fs);
 }
 
-void *get_file_from_path(struct iso_filesystem *fs, char *path) {
+void *get_file_from_path(char *path) {
+  // Get the filesystem
+  struct iso_filesystem *fs = init_filesystem();
+  if (!fs) {
+    printf("Failed to load ISO9660 filesystem\n");
+    return NULL; // Failure
+  }
+
   // Extract the target file name from the path
   char *target_file = strrchr(path, '/'); // Find the last part of the path
   target_file++;                          // Skip the '/' character
@@ -395,6 +404,7 @@ void *get_file_from_path(struct iso_filesystem *fs, char *path) {
   // Navigate to the last visited directory
   u32 target_parent_id = navigate_path(fs, path, target_file);
   if (target_parent_id == 0) {
+    free_filesystem(fs);
     printf("Failed to navigate path\n");
     return NULL; // Failure
   }
@@ -405,6 +415,7 @@ void *get_file_from_path(struct iso_filesystem *fs, char *path) {
   u32 target_block_index = target_path_table->data_blk;
   void *target_dir_buffer = read_block(target_block_index);
   if (target_dir_buffer == NULL) {
+    free_filesystem(fs);
     printf("Failed to read target block\n");
     return NULL; // Failure
   }
@@ -414,11 +425,14 @@ void *get_file_from_path(struct iso_filesystem *fs, char *path) {
   void *target_file_entry = get_file_entry(target_dir, target_file);
   if (target_file_entry == NULL) {
     memory_release(target_dir_buffer);
+    free_filesystem(fs);
     printf("Failed to get target file entry\n");
     return NULL; // Failure
   }
 
-  // Free unused buffers & return the target file entry
+  // Free fs & unused buffers
   memory_release(target_dir_buffer);
+  free_filesystem(fs);
+
   return target_file_entry; // Success
 }
