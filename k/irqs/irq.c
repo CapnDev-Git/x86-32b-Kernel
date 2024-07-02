@@ -3,7 +3,14 @@
 #include "../io.h" // outb
 #include <stdio.h> // printf
 
-// IRQ handlers array
+#define SLAVE_FLAG 0x28
+#define PIC_MASTER_A 0x20
+#define PIC_SLAVE_A 0xA0
+#define EOI 0x20
+
+/**
+ * \brief Array of IRQ handlers
+ */
 static void *irq_routines[NB_IRQS] = {0};
 
 int irq_install_handler(int irq, void (*handler)(struct iregs *r)) {
@@ -27,9 +34,9 @@ void irq_handler(struct iregs *r) {
     handler(r);
 
   // Send an EOI (end of interrupt) signal to the PICs.
-  if (r->int_no >= 40)
-    outb(0xA0, 0x20);
+  if (r->int_no >= SLAVE_FLAG)
+    outb(PIC_SLAVE_A, EOI);
 
   // Send an EOI to the master PIC
-  outb(0x20, 0x20);
+  outb(PIC_MASTER_A, EOI);
 }
