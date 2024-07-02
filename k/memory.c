@@ -114,7 +114,6 @@ void cache_free(struct cache *cache, void *ptr) {
       return;
     }
   }
-  /* FIXME: handle the case when the pointer does not belong to the cache */
 }
 
 static void memory_initialize(struct memory_map *m, unsigned addr,
