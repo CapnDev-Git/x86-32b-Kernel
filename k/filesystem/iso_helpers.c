@@ -41,7 +41,7 @@ void print_buffer_hexa(void *buffer, size_t size) {
   u8 *byte_buffer = (u8 *)buffer;
   for (size_t i = 0; i < size; i++) {
     printf("%02x ", byte_buffer[i]);
-    if ((i + 1) % (sizeof(struct iso_dir)) == 0)
+    if ((i + 1) % 16 == 0)
       printf("\n");
   }
 }
