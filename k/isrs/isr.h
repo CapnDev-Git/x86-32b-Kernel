@@ -11,6 +11,20 @@
  */
 void isr_handler(struct iregs *regs);
 
+/**
+ * \brief Adds a handler for the given ISR
+ * \param isr The ISR number
+ * \param handler The handler function
+ * \return 0 if the handler was successfully installed, -1 otherwise
+ */
+int isr_install_handler(int isr, void (*handler)(struct iregs *r));
+
+/**
+ * \brief Removes the handler for the given ISR
+ * \param isr The ISR number
+ */
+void isr_uninstall_handler(int isr);
+
 // ISR handlers (declaration for ASM linkage)
 extern void isr0(void);  // Division by zero
 extern void isr1(void);  // Debug exception
@@ -46,6 +60,5 @@ extern void isr30(void); // Reserved
 extern void isr31(void); // Reserved
 // -- 32 to 127 are reserved
 extern void isr128(void); // System call
-extern void isr177(void); // System call
 
 #endif /* ! ISR_H */
