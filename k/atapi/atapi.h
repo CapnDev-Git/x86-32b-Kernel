@@ -86,6 +86,5 @@ struct SCSI_packet {
 int discover_atapi_drive(void);
 int send_read_block_command(u16 reg, size_t lba);
 void *read_block(size_t lba);
-// int read_block(u16 *buffer, size_t lba);
 
 #endif /* ! ATAPI_H */

@@ -65,7 +65,7 @@ static int is_atapi_drive(u16 reg, u8 ata_port) {
   sig[2] = inb(ATA_REG_LBA_MI(reg));
   sig[3] = inb(ATA_REG_LBA_HI(reg));
 
-  // Compare the signature with the ATAPI signature
+  // ATAPI signature bytes
   u8 atapi_sig[ATAPI_SIGNATURE_LEN] = {ATAPI_SIG_SC, ATAPI_SIG_LBA_LO,
                                        ATAPI_SIG_LBA_MI, ATAPI_SIG_LBA_HI};
 
