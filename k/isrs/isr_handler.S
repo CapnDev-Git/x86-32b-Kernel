@@ -50,7 +50,6 @@ ISR_NOERRCODE 30        # Reserved
 ISR_NOERRCODE 31        # Reserved 
 
 ISR_NOERRCODE 128       # System call
-ISR_NOERRCODE 177       # System call
 
 
 .extern isr_handler

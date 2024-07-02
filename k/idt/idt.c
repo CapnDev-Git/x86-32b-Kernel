@@ -161,8 +161,6 @@ static void set_idt_gates(void) {
   // System calls
   set_idt_gate(128, (u32)isr128, INTERRUPT_SEL,
                INTERRUPT_FLAGS); // Syscall (0x80)
-  set_idt_gate(177, (u32)isr177, INTERRUPT_SEL,
-               INTERRUPT_FLAGS); // Syscall (0xB1)
 }
 
 /**
