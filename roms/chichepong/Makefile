@@ -29,6 +29,9 @@ ROM_FILES = \
 	    res/ball.bmp \
 	    res/ball.ksf \
 	    res/chiche.bmp \
+	    res/chiche2.bmp \
 	    res/intro.ksf \
+		res/shark.bmp \
+		res/pagnoux.bmp \
 
 include ../roms.mk
