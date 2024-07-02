@@ -4,11 +4,12 @@ TARGET	= k
 OBJS	= \
 	  crt0.o \
 	  k.o \
-	  libvga.o \
 	  list.o \
 	  memory.o \
 	  panic.o \
-	  graphics.o \
+	  vga/vga.o \
+	  vga/libvga.o \
+	  vga/framebuffer.o \
 	  serial/serial.o \
 	  gdt/gdt.o \
 	  gdt/gdt_setup.o \
@@ -20,6 +21,8 @@ OBJS	= \
 	  irqs/keyboard/keyboard.o \
 	  isrs/isr.o \
 	  isrs/isr_handler.o \
+	  isrs/syscalls/syscalls.o \
+	  isrs/syscalls/syscalls_io.o \
 	  atapi/atapi.o \
 	  filesystem/iso_filesystem.o \
 	  filesystem/iso_helpers.o \
@@ -28,7 +31,7 @@ DEPS = $(OBJS:.o=.d)
 
 all: $(TARGET)
 
-$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Igdt -Iidt -Iserial -Iirqs -Iisrs -Iatapi -Ifilesystem
+$(TARGET): CPPFLAGS += -MMD -Iinclude  -I../libs/libc/include/ -Ivga -Igdt -Iidt -Iserial -Iirqs -Iisrs -Iatapi -Ifilesystem
 $(TARGET): CFLAGS += $(K_EXTRA_CFLAGS) -g
 $(TARGET): LDFLAGS += -Wl,-Tk.lds
 $(TARGET): LDLIBS = -L../libs/libc -lc

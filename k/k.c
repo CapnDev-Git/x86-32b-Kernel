@@ -6,15 +6,17 @@
 #include <string.h>
 
 #include "atapi.h"
+#include "framebuffer.h"
 #include "gdt.h"
-#include "graphics.h"
 #include "idt.h"
 #include "iso_filesystem.h"
 #include "iso_helpers.h"
 #include "keyboard/keyboard.h"
 #include "multiboot.h"
 #include "serial.h"
+#include "syscalls/syscalls.h"
 #include "timer/timer.h"
+#include "vga.h"
 
 #define VGA_ADDRESS 0xb8000
 
@@ -40,87 +42,87 @@ void k_main(unsigned long magic, multiboot_info_t *info) {
   /* --- Setup Serial --- */
   // Initialize the serial port at COM1
   serial_init();
-  write_fb(fb, "Serial port initialized", &line, YELLOW);
+  write_fb(fb, "Serial port initialized", &line, FRAMEBUFFER_YELLOW);
 
   // Write a test message to the serial port
   printf("Hello Serial Port!\n");
 
   /* --- Setup Tables --- */
   // Setup GDT
-  write_fb(fb, "Loading GDT...", &line, LIGHT_RED);
+  write_fb(fb, "Loading GDT...", &line, FRAMEBUFFER_LIGHT_RED);
   if (init_gdt() != 0) {
-    write_fb(fb, "Failed to load GDT", &line, LIGHT_RED);
+    write_fb(fb, "Failed to load GDT", &line, FRAMEBUFFER_LIGHT_RED);
     halt_CPU();
   }
-  write_fb(fb, "GDT loaded", &line, LIGHT_GREEN);
-  write_fb(fb, "Protected mode enabled", &line, LIGHT_CYAN);
+  write_fb(fb, "GDT loaded", &line, FRAMEBUFFER_LIGHT_GREEN);
+  write_fb(fb, "Protected mode enabled", &line, FRAMEBUFFER_LIGHT_CYAN);
 
   // Setup IDT
-  write_fb(fb, "Loading IDT...", &line, LIGHT_RED);
+  write_fb(fb, "Loading IDT...", &line, FRAMEBUFFER_LIGHT_RED);
   if (init_idt() != 0) {
-    write_fb(fb, "Failed to load IDT", &line, LIGHT_RED);
+    write_fb(fb, "Failed to load IDT", &line, FRAMEBUFFER_LIGHT_RED);
     halt_CPU();
   }
-  write_fb(fb, "IDT loaded", &line, LIGHT_GREEN);
+  write_fb(fb, "IDT loaded", &line, FRAMEBUFFER_LIGHT_GREEN);
+
+  /* --- Setup ISRs --- */
+  write_fb(fb, "Loading ISRs...", &line, FRAMEBUFFER_LIGHT_RED);
+
+  // Setup the system calls
+  if (init_syscalls() != 0) {
+    write_fb(fb, "Failed to initialize syscalls", &line, FRAMEBUFFER_LIGHT_RED);
+    halt_CPU();
+  }
+  write_fb(fb, "Syscalls initialized", &line, FRAMEBUFFER_YELLOW);
+
+  write_fb(fb, "ISRs loaded", &line, FRAMEBUFFER_LIGHT_GREEN);
 
   /* --- Setup IRQs --- */
-  write_fb(fb, "Loading IRQs...", &line, LIGHT_RED);
+  write_fb(fb, "Loading IRQs...", &line, FRAMEBUFFER_LIGHT_RED);
 
   // Setup the timer
   if (init_timer() != 0) {
-    write_fb(fb, "Failed to initialize timer", &line, LIGHT_RED);
+    write_fb(fb, "Failed to initialize timer", &line, FRAMEBUFFER_LIGHT_RED);
     halt_CPU();
   }
-  write_fb(fb, "Timer initialized", &line, YELLOW);
+  write_fb(fb, "Timer initialized", &line, FRAMEBUFFER_YELLOW);
 
   // Setup the keyboard
   if (init_keyboard() != 0) {
-    write_fb(fb, "Failed to initialize keyboard", &line, LIGHT_RED);
+    write_fb(fb, "Failed to initialize keyboard", &line, FRAMEBUFFER_LIGHT_RED);
     halt_CPU();
   }
-  write_fb(fb, "Keyboard initialized", &line, YELLOW);
+  write_fb(fb, "Keyboard initialized", &line, FRAMEBUFFER_YELLOW);
 
   /* Other IRQs... */
 
-  write_fb(fb, "IRQs loaded", &line, LIGHT_GREEN);
+  write_fb(fb, "IRQs loaded", &line, FRAMEBUFFER_LIGHT_GREEN);
 
   /* --- Setup ATAPI --- */
-
-  write_fb(fb, "Discovering ATAPI drive...", &line, LIGHT_RED);
+  write_fb(fb, "Discovering ATAPI drive...", &line, FRAMEBUFFER_LIGHT_RED);
   if (discover_atapi_drive() != 0) {
-    write_fb(fb, "ATAPI drive not found", &line, LIGHT_RED);
+    write_fb(fb, "ATAPI drive not found", &line, FRAMEBUFFER_LIGHT_RED);
     halt_CPU();
   }
-  write_fb(fb, "ATAPI drive found", &line, LIGHT_GREEN);
+  write_fb(fb, "ATAPI drive found", &line, FRAMEBUFFER_LIGHT_GREEN);
 
-  /* --- Setup ISO9660 --- */
+  write_fb(fb, "Setup finished!", &line, FRAMEBUFFER_LIGHT_CYAN);
 
-  write_fb(fb, "Loading ISO9660 filesystem...", &line, LIGHT_RED);
-  struct iso_filesystem *filesystem = init_filesystem();
-  if (!filesystem) {
-    write_fb(fb, "Failed to load ISO9660 filesystem", &line, LIGHT_RED);
-    halt_CPU();
-  }
-  write_fb(fb, "ISO9660 filesystem loaded", &line, LIGHT_GREEN);
+  // char *chiche_path = "/usr/pong/res/chiche.bmp";
+  // char *yaka_path = "/usr/yakanoid/res/yaka2009.bmp";
+  // char *pagnoux_path = "/usr/pong/res/pagnoux.bmp";
+  // switch_graphic();
+  // draw_begin();
+  // struct image *yaka = load_image(pagnoux_path);
+  // draw_image(yaka, 117, 25);
+  // struct image *chiche = load_image(chiche_path);
+  // draw_image(chiche, -15, 10);
+  // draw_text(" SharkKernel ", 110, 50, WHITE, 0);
+  // draw_text("powered by Capn", 100, 60, WHITE, 0);
+  // draw_text("Electif Kernel - 2023-2024", 50, 188, RED, 0);
+  // draw_end();
 
-  // Get the file buffer from the path
-  char *path = "/USR/PONG/RES/BALL.BMP";
-  printf("Fetching file at path: %s\n", path);
-
-  write_fb(fb, "Fetching file...", &line, LIGHT_RED);
-  void *file_entry_buffer = get_file_from_path(filesystem, path);
-  if (!file_entry_buffer) {
-    printf("Failed to fetch file\n");
-    write_fb(fb, "Failed to fetch file entry", &line, LIGHT_RED);
-    halt_CPU();
-  }
-  write_fb(fb, "File entry fetched", &line, LIGHT_GREEN);
-
-  // Free all buffers & path ids
-  memory_release(file_entry_buffer);
-  free_filesystem(filesystem);
-
-  // memory_dump_leaks(); // TO FIX
+  // memory_dump_leaks();
 
   // Halt the CPU
   halt_CPU();
